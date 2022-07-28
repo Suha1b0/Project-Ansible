@@ -1,0 +1,50 @@
+---
+- name: Depoly and start the apache web server
+  hosts: all
+  vars:
+    webserver_package: httpd
+    curl_package: curl
+    firewalld_package: firewalld
+    webserver_service: httpd
+    firewalld_service: firewalld
+    rule: http
+  tasks:
+    - name: Install and update required package
+      dnf:
+        name:
+          - "{{webserver_package}}"
+          - "{{curl_package}}"
+          - "{{firewalld_package}}"
+        state: latest
+
+    - name: Enable and start the {{firewalld_service }} service
+      systemd:
+        name: "{{firewalld_service}}"
+        enabled: true
+        state: started
+
+    - name: Enable and start the {{webserver_service }} service
+      systemd:
+        name: "{{webserver_service}}"
+        enabled: true
+        state: started
+
+    - name: Adding content in index.html
+      copy:
+        content: "Welcome to Ansible\n"
+        dest: /var/www/html/index.html
+
+    - name: Allow {{rule}} in firewalld
+      firewalld:
+        service: "{{rule}}"
+        permanent: true
+        immediate: true
+        state: enabled
+
+    - name: Ensure the webserver is reachable
+      uri:
+        url: http://node
+        status_code: 200
+      register: webserver_status
+
+    - debug: var=webserver_status
