@@ -1,0 +1,32 @@
+---
+- name: "HTTP"
+  hosts: all
+  tasks:
+    - name: "Installing httpd package"
+      dnf:
+        name: httpd
+        state: present
+    - name: "Enabling service"
+      ansible.builtin.systemd:
+        name: httpd
+        enabled: yes
+        state: started
+    - name: "Copying content"
+      copy:
+        src: index.html
+        dest: /var/www/html
+    - name: "Restarting httpd"
+      ansible.builtin.systemd:
+        name: httpd
+        enabled: yes
+        state: restarted
+    - name: "Open firwall port"
+      ansible.posix.firewalld:
+        port: 80/tcp
+        permanent: yes
+        state: enabled
+    - name: "Open firwall port"
+      ansible.posix.firewalld:
+        port: 80/tcp
+        permanent: no
+        state: enabled
