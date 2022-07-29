@@ -1,0 +1,16 @@
+---
+- hosts: all
+  tasks:
+    - name: Adding users
+      user:
+        name: "{{ item.name }}"
+        password: suhaib
+        shell: /bin/bash
+        groups: "{{ item.group }}"
+      loop:
+        - name: ldap1
+          group: sales
+        - name: ldap2
+          group: acc
+        - name: ldap3
+          group: sales
