@@ -1,0 +1,51 @@
+---
+- name: upgrading OVO agent on Ahold Linux servers
+  hosts: all
+  become_user: root
+  become_method: sudo
+  tasks:
+    - name: take bakup of OVO agent before upgrade
+      become: true
+      shell: |
+         /opt/OV/bin/ovconfget | grep -i CERT_INSTALLED >>/home/ansibleadm/OVOprechecks
+         /opt/OV/bin/opcagt -version >>/home/ansibleadm/OVOprechecks
+         /opt/OV/bin/ovconfget | grep MANAGER >> /home/ansibleadm/OVOprechecks
+         /opt/OV/bin/ovcert -check >> /home/ansibleadm/OVOprechecks
+         /opt/OV/bin/ovcert -certinfo >> /home/ansibleadm/OVOprechecks
+         /opt/OV/bin/ovcert -list >> /home/ansibleadm/OVOprechecks
+         /opt/OV/bin/opcagt -status >>/home/ansibleadm/OVOprechecks
+      register: output
+
+    - name: ensure that /var/tmp/BKP_OVO directory exist for backup
+      become: true
+      file : path=/var/tmp/BKP_OVO state=directory owner=root group=root mode=0755
+    - name: ensure that /var/tmp/BKP_OVO1 directory exist for backup
+      become: true
+      file : path=/var/tmp/BKP_OVO1 state=directory owner=root group=root mode=0755
+    - name: tkae backup of /var/opt/OV/conf/OpC
+      become: true
+      shell: |
+         cp -rp /var/opt/OV/conf/OpC /var/tmp/BKP_OVO
+         cp -rp /var/opt/OV/conf/OpC /var/tmp/BKP_OVO1
+         ls -ltr /var/tmp/BKP_OVO/OpC
+
+    - name: copy /var/tmp/HPOA_12.20_Linux_64-v1.tar from remote host
+      become: true
+      copy: src=/home/ansibleadm/HPOA_12.20_Linux_64-v1.tar.gz  dest=/var/tmp/ovo/
+    - name: unzipping the /var/tmp/HPOA_12.20_Linux_64-v1.tar file on /var/tmp/ovo/
+      become: true
+      unarchive: src=/home/ansibleadm/HPOA_12.20_Linux_64-v1.tar.gz dest=/var/tmp/ovo/
+
+    - name: remove the ovo agent
+      become: true
+      shell: 'chdir=/var/tmp/ovo/HPOA_12/ ./root_task -remove'
+    - name: upgrade the ovo agent
+      become: true
+      shell: 'chdir=/var/tmp/ovo/HPOA_12/ ./root_task ahloml01.ssn.entsvcs.com'
+
+    - name: post installation
+      become: true
+      shell: |
+         /opt/OV/bin/opcagt -status
+         /opt/OV/bin/opcagt -version
+
