@@ -1,0 +1,37 @@
+---
+- hosts: nodes
+  remote_user: ansibleadm
+  gather_facts: false
+
+  vars:
+    - SSHKEY: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDq9UTKz4cy/pVCMUS/3+gwl2P6foq84CwT2m49xbuf6P9Sar6wjbZLCE5iFB5PElO95bPbXDEed2J9p2U5fU56nyy0xEJenYubSQDXUqjbzCxXW1LjFc642qFn5d1VIaNd3oXYxKgfaK95TPhhC5uU6cUTRbAFqF+6caZ1ixPHStDAujTOKp4yOejVLDWBdGdxYc1cuaaA9VUdtMufevA1cNvDCuPZ2EG5DR7ocaWNWU8Qp+/w5n/Uhj+ar/QQL9bPvJfe1ypkaFXSVL6WkYOvuecUJfSBEH56fLdow03wGUyTpan0L71NuHqAixHD5dsKRK11chKpU9Ehc0ZF/xEf ansibleadm@ahlp1946.ah.nl"
+
+  tasks:
+  - name: Create .ssh directory
+    file:
+      path: /home/ansibleadm/.ssh
+      state: directory
+      mode: '0700'
+      owner: ansibleadm
+      group: ansibleadm
+
+  - name: Populate authorized_keys file
+    lineinfile:
+      path: /home/ansibleadm/.ssh/authorized_keys
+      line: "{{ SSHKEY }}"
+      insertbefore: BOF
+
+  - name: Create .ssh directory
+    file:
+      path: /home/ansibleadm/.ssh/authorized_keys
+      mode: '0600'
+      owner: ansibleadm
+      group: ansibleadm
+
+#  - name: Set authorized key taken from file
+#    authorized_key:
+#      user: ansibleadm
+#      manage_dir: no
+#      state: present
+#      key: "{{ lookup('file', '/home/ansibleadm/.ssh/id_rsa.pub') }}"
+#      path: /home/ansibleadm/.ssh/
