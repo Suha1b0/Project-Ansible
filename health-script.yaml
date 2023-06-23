@@ -1,0 +1,18 @@
+---
+- name: Health check on Linux servers
+  hosts: all
+  tasks:
+    - name: checking server connectivity
+      ping:
+    - name: "Copying the health check script"
+      copy:
+        src: system-chk-v1.4.1.sh
+        dest: /tmp
+    - name: Change file ownership, group and permissions
+      file: 
+        path: /tmp/system-chk-v1.4.1.sh 
+        mode: '0700'
+    - name: "Executing health script on hosts"
+      command:
+          /tmp/system-chk-v1.4.1.sh
+          
